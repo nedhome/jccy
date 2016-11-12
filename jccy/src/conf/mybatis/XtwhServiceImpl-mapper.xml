@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.ggxytxh.jccy.xtwh.service.impl.XtwhServiceImpl">
+     
+     <!-- 更新系统公告 -->
+	<update id="setxtgg">
+		update dm set bz=#{content} ,bm=CURRENT_DATE(), mc=#{title} where id="xtgg";
+	</update>
+     
+     <!-- 获取用户建议列表 -->
+     <select id="xtwhyhjy" resultType="hashMap">
+        	 select mc as user_id,
+        	 		bm as data,
+        	 		bz as content 
+        	 from dm where 
+        	 		id="yhjy"
+        	 	<if test="_parameter !=1 and _parameter !=2">
+        	 	    and 1=0
+        	 	 </if>
+        	      order by bm desc
+        
+     </select>
+     
+ </mapper>
+    
+

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ggxytxh.jccy.tsgl.service.impl.TsglServiceImpl">
+	<!-- 图书预约写入借阅表-->
+	<insert id="yyts_borrow">
+	    INSERT INTO borrow(user_id, book_id, yysj, jybj, gqsj)
+	    VALUES(#{user_id}, #{book_id}, #{yysj}, 0, #{gqsj})
+	</insert>
+	
+	<!-- 图书预约写入消息表 ,交给触发器
+	<insert id="tsyy_news">
+	    INSERT INTO news(user_id,theme,content,bgtime,fqr,zt) 
+	    VALUES(#{user_id},"图书预约" ,#{content} ,#{bgtime}, "您本人", 1)
+	</insert>-->
+	
+	<!-- 图书预约更新库存-->
+	<update id="yyts_book">
+		UPDATE book
+		SET borrow_num = borrow_num - 1
+		WHERE borrow_num >= 1
+		    AND book_id =#{_parameter,jdbcType=VARCHAR} 
+	</update>
+	
+	<!-- 收藏图书检测是否已经收藏 -->
+	<select id="scts_check" resultType="HashMap">
+	    select book_id,user_id  from scts where user_id=#{user_id} and book_id=#{book_id}
+	</select>
+	
+	<!-- 图书收藏 -->
+	<insert id="scts">
+	    insert into scts(user_id,book_id,scsj) values(#{user_id},#{book_id},#{scsj})
+	</insert>
+	
+	
+	<!--负责人帐号下的借阅列表 -->
+	<select 
+		id="getjylb"
+		resultType="HashMap">
+			SELECT
+			  w.id      AS borrow_id,
+			  k.book_id,
+			  k.name    AS book_name,
+			  u.name    AS user_name,
+			  u.user_id,
+			  u.phone   AS user_phone,
+			  w.yysj
+			FROM borrow w
+			  LEFT JOIN USER u
+			    ON (w.user_id = u.user_id)
+			  LEFT JOIN book k
+			    ON (w.book_id = k.book_id)
+			WHERE w.book_id IN(SELECT
+			                     k.book_id
+			                   FROM book k
+			                   WHERE k.book_id IN(SELECT
+			                                        book_id
+			                                      FROM borrow
+			                                      WHERE CURRENT_DATE() <![CDATA[<=]]> gqsj
+			                                     	  AND jybj='0'
+			                                     	  AND ifback='1'<!-- 已经归还或者还没取书（也就是预约） -->
+			                                      <if test="user_id!=null and user_id!=''">
+			                                          AND user_id = #{user_id}
+			                                      </if>)
+			                       AND k.pic IN(SELECT
+			                                      bm
+			                                    FROM dm
+			                                    WHERE id = 'pictype'
+			                                        AND mc = #{pic_id}))
+	</select>
+	
+	
+	<!-- 取书操作 -->
+	<update id="dotsjy">
+	    UPDATE borrow 
+	    SET ifback='0',
+		    jybj='1',
+		    jysj=CURRENT_DATE(),
+		    gqsj=CURRENT_DATE(), 
+		    dqsj=DATE_ADD(CURRENT_DATE(),INTERVAL 6 MONTH) <!-- 到期时间 6个月后-->
+	    WHERE id=#{id}
+	    	  AND user_id=#{user_id}
+	    	  AND book_id=#{book_id}
+	    	  AND yysj=#{yysj}
+	</update>
+	
+	<!-- 取书时生成消息
+	<insert id="">
+	    INSERT INTO news(user_id,theme,content,bgtime,fqr,zt) 
+	    VALUES(new.user_id,"图书预约" ,@content_temp,new.yysj, @user_temp, 1);
+	</insert>
+	 -->
+	 
+	<select id="getbook_id" resultType="hashMap">
+	     SELECT
+		  MAX(k.book_id) AS book_id,
+		  d.bm as pic
+		FROM book k
+		  RIGHT JOIN dm d
+		    ON (k.pic = d.bm)
+		WHERE d.id = 'pictype'
+		    AND d.mc = #{pic}
+	    
+	</select>
+	 
+	<!-- 添加图书 -->
+	<insert id="addbook">
+	   INSERT INTO book
+            (book_id,
+             name,
+             picture_path,
+             publish,
+             campus,
+             academy,
+             profession,
+             pic,
+             cjsj,
+             contributor,
+             contributor_name,
+             borrow_num,
+             book_comment)
+	  VALUES (#{book_id},
+			  #{name},
+			  #{picture_path},
+			  #{publish},
+			  #{campus},
+			  #{academy},
+			  #{profession},
+			  #{pic},
+			  CURRENT_DATE(),
+			  #{contributor},
+			  #{contributor_name},
+			  #{borrow_num},
+			  #{book_comment})
+	</insert>
+	
+	<!-- 捐书榜 -->
+	<insert id="insertContribution">
+	   INSERT INTO contribution
+            (book_id,
+             user_id,
+          	 book_name,
+             contributor_name,
+             book_publish,
+            on_time)
+	  VALUES (#{book_id},
+	   		  #{contributor},<!-- 提供者的ID -->
+			  #{name},
+			  #{contributor_name},<!-- 提供者的名称 -->
+			  #{publish},
+			  CURRENT_DATE()
+			  )
+	</insert>
+	
+	<!-- 图书管理下的综合查询 -->
+	<select id="tsglzhcx"
+	    resultType="com.ggxytxh.jccy.common.vo.Book">
+	    SELECT
+		  name,
+		  book_id,
+		  picture_path,
+		  publish,
+		  campus,
+		  academy,
+		  profession,
+		  d.mc         AS pic,
+		  contributor,
+		  contributor_name,
+		  borrow_num,
+		  cjsj,
+		  book_comment
+		FROM book k,
+		  dm d
+		WHERE d.bm = k.pic
+		    AND d.id = 'pictype'
+		    AND k.book_id=#{_parameter,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 图书管理下的图书修改 -->
+	<update id="tsglchange">
+	    update book  set 
+	   	  name=#{name},
+		  picture_path=#{picture_path},
+		  publish=#{publish},
+		  campus=#{campus},
+		  academy=#{academy},
+		  profession=#{profession},
+		  contributor=#{contributor},
+		  borrow_num=#{borrow_num},
+		  book_comment=#{book_comment}
+		 where book_id='${book_id}' and 
+		 		pic=(select bm from dm where mc='${pic}' and id='pictype')		     
+		 
+	</update>
+	
+	<!-- 图书管理下的删除图书 -->
+	<delete id="tsgldelete">
+	    delete from book where book_id=#{_parameter, jdbcType=VARCHAR}  AND (SELECT COUNT(id) FROM borrow WHERE book_id=#{_parameter, jdbcType=VARCHAR} AND jybj!='2')=0
+	</delete>
+	
+<!-- 	添加图书时通过user_id 获取名字 -->
+	<select id="findUserName"
+	    resultType="String">
+	    SELECT
+		  name
+		FROM user
+		WHERE user_id=#{_parameter, jdbcType=VARCHAR}
+	</select>
+	
+	
+	<!-- 归还当前借阅查询 -->
+	<select 
+		id="findback"
+		resultType="HashMap">
+		
+		SELECT
+		  k.book_id,
+		  k.name    AS book_name,
+		  w.id      AS back_id,
+		  TO_DAYS(w.dqsj)  - TO_DAYS(NOW())   AS cqts,
+		  w.user_id,
+		  w.jysj    AS jysj,
+		  w.dqsj    AS dqsj
+		FROM book k,
+		  borrow w,
+		  dm m
+		WHERE k.book_id = w.book_id
+		    AND w.jybj = '1'
+		    AND w.ifback = '0'
+		    AND w.gs_key = '0'
+		    AND m.id = 'pictype'
+			AND m.mc = #{pic_id}
+			AND w.book_id like CONCAT('P',m.bm,'M%' )   
+		    <if test="user_id!=null and user_id!=''">
+				AND w.user_id =#{user_id}  
+			</if> 
+			<if test="book_id!=null and book_id!=''">
+				AND w.book_id like CONCAT('%','${book_id}','%' )   
+			</if> 
+		ORDER BY w.dqsj
+		
+	</select>
+	
+	<update id="backborrow">
+		update borrow set ifback='1',jybj='2' where id=#{_parameter, jdbcType=VARCHAR}
+	</update>
+	<update id="backbook">
+		update book set borrow_num=borrow_num+1 where book_id=#{_parameter, jdbcType=VARCHAR}
+	</update>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

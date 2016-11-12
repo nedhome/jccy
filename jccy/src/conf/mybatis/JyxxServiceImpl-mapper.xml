@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ggxytxh.jccy.jyxx.service.impl.JyxxServiceImpl">
+	
+	
+	<!-- 当前预约查询 -->
+	<select 
+		id="getdqyy"
+		resultType="HashMap">
+		SELECT
+		  kk.borrow_id AS dqyy_id,
+		  kk.book_id,
+		  kk.book_name,
+		  kk.book_publish,
+		  mm.mc AS book_campus,
+		  kk.book_academy,
+		  kk.book_profession,
+		  kk.yysj,
+		  kk.gqsj,
+		  kk.pic_name,
+		  kk.pic_lphone,
+		  kk.pic_sphone,
+		  kk.pic_adress
+		FROM dm mm,
+				  (SELECT
+				  	 k.book_id,
+				     k.name              AS book_name,
+				     k.publish           AS book_publish,
+				     k.campus,
+				     k.academy           AS book_academy,
+				     k.profession        AS book_profession,
+				     w.id 				 AS borrow_id,
+				     w.yysj              AS yysj,
+				     w.gqsj              AS gqsj,
+				     c.name              AS pic_name,
+				     c.lphone            AS pic_lphone,
+				     c.sphone            AS pic_sphone,
+				     c.address           AS pic_adress
+				   FROM book k,
+				     borrow w,
+				     pic c,
+				     dm m
+				   WHERE k.book_id = w.book_id
+				       AND m.id = 'pictype'
+				       AND m.mc = c.user_id
+				       AND m.bm = k.pic
+				       AND w.ifback='1'<!-- 已经归还或者还没取书（也就是预约） -->
+				       AND w.jybj='0'
+				       AND w.gs_key='0'
+				       AND w.gqsj <![CDATA[>=]]> CURRENT_DATE() <!-- 过期时间大于等于当前日期 -->
+				       <if test="_parameter != null">
+				       AND w.user_id =#{_parameter,jdbcType=VARCHAR}
+				       </if>
+				   ) kk
+		WHERE mm.id = 'xiaoqu'
+		      AND mm.bm = kk.campus
+		      order by kk.gqsj asc
+	</select>
+	
+	<!-- 通过id删除当前预约 -->
+	<delete id="deletedqyy">
+	    delete from borrow where ifback='1' and jybj='0' and id=#{_parameter,jdbcType=VARCHAR} 
+	</delete>
+	
+	
+	<!-- 当前借阅查询 -->
+	<select 
+		id="getdqjy"
+		resultType="HashMap">
+		SELECT
+		  kk.borrow_id AS dqjy_id,
+		  kk.book_id,
+		  kk.book_name,
+		  kk.book_publish,
+		  mm.mc AS book_campus,
+		  kk.book_academy,
+		  kk.book_profession,
+		  kk.jysj,
+		  kk.dqsj,
+		  kk.xjbj,
+		  kk.pic_name,
+		  kk.pic_lphone,
+		  kk.pic_sphone,
+		  kk.pic_adress
+		FROM dm mm,
+				  (SELECT
+				  	 k.book_id,
+				     k.name              AS book_name,
+				     k.publish           AS book_publish,
+				     k.campus,
+				     k.academy           AS book_academy,
+				     k.profession        AS book_profession,
+				     w.id 				 AS borrow_id,
+				     w.jysj              AS jysj,
+				     w.dqsj              AS dqsj,
+				     w.xjbj              AS xjbj,
+				     c.name              AS pic_name,
+				     c.lphone            AS pic_lphone,
+				     c.sphone            AS pic_sphone,
+				     c.address           AS pic_adress
+				   FROM book k,
+				     borrow w,
+				     pic c,
+				     dm m
+				   WHERE k.book_id = w.book_id
+				       AND m.id = 'pictype'
+				       AND m.mc = c.user_id
+				       AND m.bm = k.pic
+				       AND w.jybj='1'
+				       AND w.ifback='0'
+				       AND w.gs_key='0'
+				       <if test="_parameter != null">
+				       AND w.user_id =#{_parameter,jdbcType=VARCHAR}
+				       </if>
+				   ) kk
+		WHERE mm.id = 'xiaoqu'
+		      AND mm.bm = kk.campus
+		      order by kk.dqsj asc
+	</select>
+	
+	
+	<!-- 续借图书 -->
+	<update id="xuejie">
+	    update borrow set xjbj='1',dqsj=(DATE_ADD(dqsj,INTERVAL 1 MONTH)) where gs_key='0' and ifback='0' and jybj='1' and id=#{_parameter,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 超期图书查询 -->
+	<select 
+		id="getcqts"
+		resultType="HashMap">
+		SELECT
+			  kk.book_id,
+			  kk.book_name,
+			  kk.book_publish,
+			  mm.mc              AS book_campus,
+			  kk.book_academy,
+			  kk.book_profession,
+			  kk.jysj,
+			  kk.dqsj,
+			  kk.cqts,
+			  kk.xjbj,
+			  kk.pic_name,
+			  kk.pic_lphone,
+			  kk.pic_sphone,
+			  kk.pic_adress
+			FROM dm mm,
+			  (SELECT
+			     k.book_id,
+			     TO_DAYS(NOW()) - TO_DAYS(w.dqsj)  AS cqts,
+			     k.name              AS book_name,
+			     k.publish           AS book_publish,
+			     k.campus,
+			     k.academy           AS book_academy,
+			     k.profession        AS book_profession,
+			     w.id 				 AS borrow_id,
+			     w.jysj              AS jysj,
+			     w.dqsj              AS dqsj,
+			     w.xjbj              AS xjbj,
+			     c.name              AS pic_name,
+			     c.lphone            AS pic_lphone,
+			     c.sphone            AS pic_sphone,
+			     c.address           AS pic_adress
+			   FROM book k,
+			     borrow w,
+			     pic c,
+			     dm m
+			   WHERE k.book_id = w.book_id
+			       AND m.id = 'pictype'
+			       AND m.mc = c.user_id
+			       AND m.bm = k.pic
+			       AND w.dqsj &lt; CURRENT_DATE()<!--    "<" 转义           -->
+			       AND w.ifback='0'
+			       AND w.jybj = '1'
+			       AND w.gs_key='0'
+			       <if test="_parameter != null">
+				       AND w.user_id =#{_parameter,jdbcType=VARCHAR}
+				   </if>
+			) kk
+			WHERE mm.id = 'xiaoqu'
+			    AND mm.bm = kk.campus
+			    order by kk.dqsj asc
+	</select>
+	
+	<!-- 图书捐赠记录 -->
+	<select id="getjsjl" resultType="com.ggxytxh.jccy.common.vo.Contribution">
+		SELECT
+		  c.contributor_name,
+		  c.book_name,
+		  c.book_id,
+		  c.book_publish,
+		  c.on_time
+		FROM contribution c
+		WHERE user_id =#{user_id}
+		  order by c.on_time desc
+	</select>
+	
+	<!-- 借阅历史记录查询 -->
+	<select 
+		id="getjyls"
+		resultType="HashMap">
+		SELECT
+		  kk.book_id,
+		  kk.borrow_id,
+		  kk.book_name,
+		  kk.book_publish,
+		  mm.mc              AS book_campus,
+		  kk.book_academy,
+		  kk.book_profession,
+		  kk.jysj,
+		  kk.dqsj,
+		  kk.ghsj,
+		  kk.ghbj,
+		  kk.pic_name,
+		  kk.pic_lphone,
+		  kk.pic_sphone,
+		  kk.pic_adress
+		FROM dm mm,
+		  (SELECT
+		     k.book_id,
+		     k.name              AS book_name,
+		     k.publish           AS book_publish,
+		     k.campus,
+		     k.academy           AS book_academy,
+		     k.profession        AS book_profession,
+		     w.id 				 AS borrow_id,
+		     w.jysj              AS jysj,
+		     w.dqsj              AS dqsj,
+		     w.ghsj              AS ghsj,
+		     w.jybj            AS ghbj,<!-- 后来修改，jybj=1为当前借用，jybj=2为归还，jybj=2为挂失，不能只通过ifback判断 -->
+		     c.name              AS pic_name,
+		     c.lphone            AS pic_lphone,
+		     c.sphone            AS pic_sphone,
+		     c.address           AS pic_adress
+		   FROM book k,
+		     borrow w,
+		     pic c,
+		     dm m
+		   WHERE k.book_id = w.book_id
+		       AND m.id = 'pictype'
+		       AND m.mc = c.user_id
+		       AND m.bm = k.pic
+		       AND w.jybj != '0'
+		       <if test="_parameter != null">
+				AND   w.user_id =#{_parameter,jdbcType=VARCHAR}
+			   </if>
+			) kk
+		WHERE mm.id = 'xiaoqu'
+		    AND mm.bm = kk.campus
+		ORDER BY kk.ghbj ASC, kk.dqsj DESC,kk.ghsj DESC
+	</select>
+	
+	
+	<!-- 收藏记录查询记录查询 -->
+	<select 
+		id="getscts"
+		resultType="HashMap">
+		SELECT
+		  s.id AS scts_id,
+		  k.book_id,
+		  k.name       AS book_name,
+		  k.publish    AS book_publish,
+		  s.scsj
+		FROM book k,
+		  scts s
+		WHERE k.book_id = s.book_id
+		  AND s.user_id =#{_parameter,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 取消收藏 -->
+	<delete id="deletescts">
+	    delete from scts where  <!-- gs_key='0' and --> id=#{_parameter,jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="gtsginsert">
+		insert into tsgs(gs_key,user_id,book_id,gs_time) 
+			values(#{borrow_id},#{user_id},#{book_id},CURRENT_DATE())
+	</insert>
+</mapper>

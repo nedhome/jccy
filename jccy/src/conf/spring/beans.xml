@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="jccy_grxx_service"
+		  class="com.ggxytxh.jccy.grxx.service.impl.GrxxServiceImpl">
+	</bean>
+	
+    <bean id="jccy_common_service"
+		  class="com.ggxytxh.jccy.common.service.impl.BookServiceImpl">
+	</bean>
+	
+    <bean id="jccy_jyxx_service"
+		  class="com.ggxytxh.jccy.jyxx.service.impl.JyxxServiceImpl">
+	</bean>
+	
+    <bean id="jccy_tsgl_service_tsgl"
+		  class="com.ggxytxh.jccy.tsgl.service.impl.TsglServiceImpl">
+	</bean>
+	
+    <bean id="jccy_tsgl_service_picture"
+		  class="com.ggxytxh.jccy.tsgl.service.impl.PictureServiceImpl">
+	</bean>
+    
+    <bean id="jccy_rygl_service"
+          class="com.ggxytxh.jccy.rygl.service.impl.RyglServiceImpl">
+        
+    </bean>
+    <bean id="jccy_xtwh_service"
+          class="com.ggxytxh.jccy.xtwh.service.impl.XtwhServiceImpl">
+        
+    </bean>
+</beans>

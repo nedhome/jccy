@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ggxytxh.jccy.base.interceptor.LoginInterceptor">
+	
+   <!-- 
+    select user_id as user_id, name as name, type_id as type_id,
+			email as email, campus as campus, academy as academy,
+			profession as profession, phone as phone, contribution_id, comment as comment
+		from user 
+		where user_id=#{user_id} and password=#{password} and type_id=#{type_id} -->
+	
+	<!-- 登录 -->
+	<select 
+		id="login"
+		resultType="com.ggxytxh.jccy.common.vo.User">
+		select u.user_id, u.name, u.type_id,u.email, u.campus as campus, u.academy,u.profession, 
+		u.contribution_id, u.comment,
+		<if test="type_id==0">
+		   u.user_pic,
+		   u.phone
+		</if>
+		<if test="type_id!=0">
+		   p.picid as user_pic,
+		   p.lphone,
+		   p.sphone,
+		   p.address
+		</if>
+		from user u
+		<if test="type_id!=0">
+			,pic p
+		</if>
+		where u.user_id=#{user_id} and u.password=#{password} and u.type_id=#{type_id}
+		<if test="type_id!=0">
+		  and  p.user_id=#{user_id}
+		</if>
+	</select>
+	
+	<!-- 首次登录写入日志 -->
+	
+	<insert id="firstloginlog_1">
+	insert into login_protect(ip,time,number,flag,user_id)
+	values(#{ip}, #{time}, #{number}, #{flag}, #{user_id}) 
+	</insert>
+	
+	<!-- 更新重置 -->
+	<update id="firstloginlog_2">
+	update login_protect 
+	set ip=#{ip}, time=#{time}, number=#{number}, flag=#{flag} where user_id=#{user_id}
+	</update>
+	
+	<!-- 错误次数+1 -->
+	<update id="updataloginlog_1">
+	update login_protect 
+	set number=#{number} where user_id=#{user_id} 
+	</update>
+	
+	<!-- 错误已达3次上锁 -->
+	<update id="updataloginlog_2">
+	update login_protect 
+	set flag=#{flag} where user_id=#{user_id} 
+	</update>
+	
+	<!-- 读取日志 -->
+	<select 
+		id="loginprotect"
+		parameterType="java.lang.String"
+		resultType="java.util.HashMap">
+		select flag as "flag", ip as "ip",  time as "time", 
+		user_id as user_id, number as "number" 
+		from login_protect 
+		where user_id=#{user_id}
+	</select>
+	
+	<!-- 验证密码 -->
+	<select id="changepsd_1"
+		resultType="com.ggxytxh.jccy.common.vo.User">
+		select user_id from user where user_id=#{user_id} and password=#{password}
+	</select>
+	
+	<!-- 更新密码 -->
+	<update id="changepsd_2">
+		update user set password=#{password} where user_id=#{user_id}
+	</update>
+	
+</mapper>

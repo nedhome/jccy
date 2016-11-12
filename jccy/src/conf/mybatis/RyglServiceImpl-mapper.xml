@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ggxytxh.jccy.rygl.service.impl.RyglServiceImpl">
+    <!-- 查询人员信息 -->
+	<select id="ryglzhgl" 
+	    resultType="com.ggxytxh.jccy.common.vo.User">
+	   SELECT
+	   	  name,
+		  user_id,
+		  type_id,
+		  d.mc as campus,
+		  academy,
+		  profession,
+		  phone,
+		  email,
+		  comment
+		FROM USER u,
+		  dm d
+		WHERE d.id = 'xiaoqu'
+		    AND u.campus = d.bm
+		    and u.qybj=1 
+		<if test="user_pic!=99">
+			and user_pic like CONCAT('%','${user_pic}','%' )
+		  
+		</if>
+	    <if test="user_id!=null and user_id!=''">
+	        and user_id like CONCAT('%','${user_id}','%' )  
+	    </if>
+	    <if test="name!=null and name!=''">
+	    	and name like CONCAT('%','${name}','%' )  
+	 
+	    </if>
+	   	<if test="campus!=1">
+	   		and campus like CONCAT('%','${campus}','%' )  
+	   	    
+	   	</if>
+	   	<if test="academy!=null and academy!=''">
+	   		and academy like CONCAT('%','${academy}','%' )  
+	   	    
+	   	</if>
+	   	<if test="profession!=null and profession!=''">
+	   		and profession like CONCAT('%','${profession}','%' )  
+	   	   
+	   	</if>
+	</select>
+	
+	<!-- 更新人员信息 -->
+	<update id="ryglupdate">
+	    update user set 
+	  	<if test="name!=null and name!=''">
+	        name=#{name},
+	    </if>
+	    <if test="campus!=1">
+	   	    campus=#{campus},
+	   	</if>
+	   
+	   	<if test="profession!=null and profession!=''">
+	   	    profession=#{profession},
+	   	</if>
+	   	<if test="comment!=null and comment!=''">
+	   	    comment=#{comment}
+	   	</if>
+	   	<if test="academy!=null and academy!='' ">
+	   	    ,academy=#{academy}
+	   	</if>
+	   	<if test="user_pic!=null and user_pic!='' ">
+	   	    ,user_pic=#{user_pic}
+	   	</if>
+	   	where user_id=#{user_id} 
+	   	<if test="(academy!=null and academy!='') or (user_pic!=null and user_pic!='')">
+	   	    and user_pic!='99'
+	   	</if>
+	   		
+	</update>
+	
+	<!-- 作废人员 -->
+	<update id="rygldelete">
+	    update user set qybj=0 where user_id=#{user_id} and type_id=0
+	</update>
+	
+	<!-- 查询所有pic -->
+	<select id="findallpic" resultType="hashMap">
+		select bm,bz as academy from dm where id='pictype' and bm!='99'
+	</select>
+	
+	<!-- 添加用户 -->
+	<insert id="adduser">
+	insert into user(user_id,name,password ,type_id,user_pic,campus)
+	 values(#{user_id},#{name},'88888888','0',#{user_pic},#{campus})
+	 
+	 </insert>
+	 
+	 <!-- 变更负责人 -->
+	 <!-- pic表 ,不能是管理员-->
+	 <update id="picupdate">
+		 update pic 
+		 		set user_id=#{newID},name='请自行修改',lphone='请自行修改',sphone='请自行修改',address='请自行修改'
+	 			where user_id=#{oldID} and type_id!='2'
+	 </update>
+	 
+	  <!-- dm表 -->
+	 <update id="updatedm">
+	 update dm 
+	 		set mc=#{newID} 
+	 		where id='pictype' and mc=#{oldID}
+	 </update>
+	 
+	 
+	  <!-- old user表 -->
+	 <update id="updatepicolduser">
+	 update user 
+	 		set type_id='0' ,
+			user_pic=(SELECT bm
+		            		FROM dm
+		           			WHERE mc =#{oldID}  AND id ='pictype') 
+        	where user_id=#{oldID}
+	 </update>
+	 
+	<!--  newUser表 -->
+	<update id="updatepicnewuser">
+		update user 
+			   set type_id='1',user_pic='99' 
+			   where user_id=#{newID}
+	</update>
+</mapper>

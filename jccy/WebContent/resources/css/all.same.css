@@ -1,0 +1,136 @@
+@charset "utf-8";
+/*
+*背景色渐变:.linear;
+*table，th,td专门为users下查询的表格用
+*/
+body{
+	margin: 0 auto;
+	background-color: #808080;
+	margin: 0 auto;
+	font-family:微软雅黑;
+}
+
+.linear {
+	width: 100%;
+	height: 750px;
+	FILTER: progid: DXImageTransform.Microsoft.Gradient(gradientType= 0, startColorStr= #aeeef9, endColorStr= #808080);/*IE*/
+	background: -moz-linear-gradient(top, #aeeef9, #808080); /*火狐*/
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aeeef9),to(#808080));
+	FILTER: progid:DXImageTransform.Microsoft.Gradient(gradientType=0,startColorStr=#aeeef9, endColorStr=#808080); /*谷歌*/
+}
+table {
+	border-collapse: collapse;
+	border: 0px solid #999;
+	margin-left: 2%;
+	margin-right: 2%;
+	font-size: 18px;
+    table-layout:fixed;
+}
+
+th {
+	border: 1px solid #33CCFF;
+	height: 25px;
+	background-color: lightblue;
+	font-size: 15px;
+	color: #0099CC;
+	text-align: center;
+}
+
+td {
+	text-align: center;
+	border: 1px solid #33CCFF;
+	font-size: 15px;
+	height: 25px;
+	font-family: 微软雅黑;
+    word-break:keep-all;/* 不换行 */
+    white-space:nowrap;/* 不换行 */
+    overflow:hidden;/* 内容超出宽度时隐藏超出部分的内容 */
+    text-overflow:ellipsis;/* 当对象内文本溢出时显示省略标记(...) ；需与overflow:hidden;一起使用。*/
+}
+input {
+	background: #E8FAFF;
+	border: 0px;
+}
+
+input[type="text"] ,textarea{
+	font-family: 微软雅黑;
+	background-color: #edfafe;
+}
+
+input[type="button"], input[type="reset"] ,input[type="submit"],button{
+	font-family: 微软雅黑;
+	margin-left: 10px;
+	border-radius: 2px;
+	width: 56px;
+	height: 20px;
+	color: #005cb9;
+	background-color: #abe6fa;
+	border: 0;
+	box-shadow: 0 0 8px #000000;
+	font-size:13px;
+}
+input[type="button"]:hover , input[type="reset"]:hover ,input[type="submit"]:hover ,button:hover {
+	-webkit-transform: scale(1.1);
+   transform: scale(1.1);
+}
+span{
+	font-family: 微软雅黑;
+}
+/*css3属性中<a>内的<img>不支持*/
+a img{ border:none}
+
+a {
+	text-decoration: none;
+}
+
+a:link {color: #018bad}		/* 未访问的链接 */
+a:visited {color: #018bad}	/* 已访问的链接 */
+a:hover {color: #FF0000}	/* 鼠标移动到链接上 */
+a:active {color: #0000FF}	/* 选定的链接 */
+
+
+
+/* tab标签设计 */
+#tab{width:100%;font-size:13px;height: 800px}
+#tab ul{margin:0;padding:0;list-style:none;background: lightblue}
+#tab #tab_title{ height:23px;padding-left:50px;border-bottom:1px solid #029afb}
+#tab #tab_title li{top:0px;background: lightblue;border-top-left-radius: 3px;border-top-right-radius: 3px;border:1px solid #029afb;height:17px;padding-top:5px;margin-right:5px;text-align:right;float:left;cursor:pointer}
+#tab #tab_title li.on{font-weight:bolder;background:#aeeef9;height:18px;padding-top:4px;border:1px solid #029afb;border-bottom:none;color:#01c5f6;background:lightblue;position:relative;top:1px}
+#tab #tab_title li span:hover{ color:red;}
+#tab #tab_content{border:1px solid #AACBEE;border-top:none;padding:0px}
+#tab #tab_content li{display:none}
+#tab #tab_content #content_1{display:block;}
+
+/* 图片剪切 */
+.cut_mid {
+	border-radius: 6px;
+	margin-left: 2%;
+	margin-right: 2%;
+	position: relative;
+}
+
+/* 图片剪切原来与预览的 */
+.one, .two {
+	float: left;
+	overflow: hidden;
+	margin-left: 20px;
+}
+
+/*版权信息，非框架用*/
+.footer {
+	font-size: 12px;
+	text-align: center;
+	color: #0066CC;
+}
+
+/*logo的图片*/
+.indeximg_1 {
+	box-shadow: 0 0 4px #029afb;
+	width: 100%;
+	height:120px;
+	
+	vertical-align: middle
+}
+
+.logo_font {position: absolute; top: 10px;left: 180px ;font-weight:bolder;color: #005CB9;font-family: 微软雅黑;font-size: 55px;}
+.logo_img {position: absolute; top:10px;left: 32px;width: 120px;height: 80px;s}

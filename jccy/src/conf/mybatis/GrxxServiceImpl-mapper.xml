@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ggxytxh.jccy.grxx.service.impl.GrxxServiceImpl">
+	<!-- 获取消息 -->
+	<select 
+		id="getnews"
+		resultType="com.ggxytxh.jccy.common.vo.News">
+		select n.theme, n.content, n.bgtime, n.fqr, dc.mc as zt
+		from news n, (select d.bm as bm, d.mc as mc 
+					  from dm d 
+					  where d.id='xxzt' ) as dc
+		where  n.zt=dc.bm
+		and n.user_id=#{user_id} 
+		<if test="theme!=null">
+		  and n.theme like  CONCAT('%','${theme}','%') 
+		</if>
+		<if test="content!=null">
+		  and n.content like  CONCAT('%','${content}','%')
+		</if>
+		<if test="bgtime!=null and endtime!=null and bgtime!='' and endtime!=''">
+		  and n.bgtime between #{bgtime} and  #{endtime}
+		</if>
+		<if test="zt!=0">
+		  and dc.bm=${zt}
+		</if>
+	</select>
+	
+	<!-- 用户更新信息 -->
+	<update id="updateuser">
+		update user 
+			set name=#{name}, email=#{email},profession=#{profession}, phone=#{phone}
+		where user_id=#{user_id}
+	</update>
+	<!-- 用户pic信息 -->
+	<update id="updatepic">
+		update pic 
+			set lphone=#{lphone}, sphone=#{sphone}, address=#{address} ,name=#{name}
+		where user_id=#{user_id}
+	</update>
+	
+	<update id="updatename">
+		update contribution 
+			set contributor_name=#{name}
+		where user_id=#{user_id}
+	</update>
+	
+	<!-- 用户更改名字时同时更改捐书者的名字 -->
+	<update id="updatecontributorname">
+		update book 
+			set contributor_name=#{name}
+		where contributor=#{user_id}
+	</update>
+	<!-- 用户反馈 -->
+	<insert id="grfk">
+	    insert into dm(id,bm,mc,xh,bz) values('yhjy',NOW(),#{user_id},'0',#{content})
+	</insert>
+	
+	
+	<!-- 获取我的建议列表 -->
+     <select id="myfk" resultType="hashMap">
+        	 select
+        	 		bm as data,
+        	 		bz as content 
+        	 from dm where 
+        	 		id="yhjy" and
+        	 		mc=#{_parameter,jdbcType=VARCHAR} 
+        	      order by bm desc
+        
+     </select>
+</mapper>

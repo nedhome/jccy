@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ggxytxh.jccy.common.service.impl.BookServiceImpl">
+	<!-- 图书查询 -->
+	<select
+		id="bookfind"
+		resultType="com.ggxytxh.jccy.common.vo.Book">
+		select k.id as id,k.book_id as book_id,k.name as name,
+			k.picture_path as picture_path,k.publish as publish , dc.mc as campus,
+			k.academy as academy , k.profession as profession ,dp.mc as pic,
+			contributor_name as contributor , k.borrow_num as borrow_num,
+			k.book_comment as book_comment 
+		from book k, (select d.bm as bm, d.mc as mc 
+					from dm d 
+					where d.id='xiaoqu' ) as dc,
+					(select d.bm as bm, p.name as mc 
+					from dm d, pic p where d.id='pictype' and p.user_id=d.mc) as dp
+					
+		where
+			k.campus=dc.bm and
+			k.pic=dp.bm and
+			
+			<if test="campus!=1">
+			k.campus=${campus} and
+			</if>
+			<if test="name!=null">  
+            k.name like CONCAT('%','${name}','%' )  
+            </if> 
+	</select>
+	
+	<!-- 图书详情 -->
+	<select
+	id="bookinfo"
+	resultType="com.ggxytxh.jccy.common.vo.Book">
+	
+		SELECT
+		  k.pic          AS pic,
+		  k.name         AS NAME,
+		  k.book_id      AS book_id,
+		  k.publish      AS publish,
+		  k.picture_path,
+		  dc.mc          AS campus,
+		  k.academy      AS academy,
+		  k.profession   AS profession,
+		  k.contributor_name  AS contributor,
+		  k.borrow_num   AS borrow_num,
+		  k.book_comment AS book_comment
+		FROM book k,
+		  (SELECT
+		     d.bm            AS bm,
+		     d.mc            AS mc
+		   FROM dm d
+		   WHERE d.id = 'xiaoqu') AS dc
+		WHERE k.campus = dc.bm AND
+        <if test="_parameter != null" >  
+        book_id=#{_parameter,jdbcType=VARCHAR}  
+        </if> 
+	</select>
+
+	<select
+		id="picinfo"
+		resultType="com.ggxytxh.jccy.common.vo.Pic">
+		select *
+		from pic p, dm d
+		where
+		d.mc=p.user_id and
+		<if test="_parameter != null">
+			d.bm=#{_parameter,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 捐书榜查询 -->
+	<select 
+		id="contribution"
+		resultType="com.ggxytxh.jccy.common.vo.Contribution">
+		select * from contribution order by on_time desc
+	</select>
+	
+	
+	<!-- 高级查询 -->
+	<select
+		id="booksupperfind"
+		resultType="com.ggxytxh.jccy.common.vo.Book">
+		select k.id as id,k.book_id as book_id,k.name as name,
+			k.picture_path as picture_path,k.publish as publish , dc.mc as campus,
+			k.academy as academy , k.profession as profession ,dp.mc as pic,
+			k.contributor as contributor , k.borrow_num as borrow_num,
+			k.book_comment as book_comment 
+		from book k, (select d.bm as bm, d.mc as mc 
+					 from dm d 
+					 where d.id='xiaoqu' ) as dc,
+					 (select d.bm as bm, p.name as mc 
+					 from dm d, pic p 
+					 where d.id='pictype' and p.user_id=d.mc) as dp
+		where 
+			k.pic=dp.bm and
+			k.campus=dc.bm and
+			<if test="book_id!=null">
+			k.book_id like CONCAT('%','${book_id}','%' ) and
+			</if>
+			<if test="name!=null">  
+            k.name like CONCAT('%','${name}','%' )  and
+            </if> 
+			<if test="publish!=null">  
+            k.publish like CONCAT('%','${publish}','%' ) and
+            </if>
+            <if test="campus!=1">
+			k.campus=${campus} and
+			</if>
+            <if test="contributor!=null">  
+            k.contributor like CONCAT('%','${contributor}','%' ) 
+            </if>	 
+	</select>
+	
+	<select id="getxtgg" resultType="hashMap">
+	select mc as title, bz as content, 	bm as date from dm where id="xtgg"
+</select>
+</mapper>

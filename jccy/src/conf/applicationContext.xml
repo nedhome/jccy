@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+	<import resource="classpath:conf/spring/*.xml"/>
+	<!-- 导入资源文件 -->
+	<context:property-placeholder location="classpath:conf/db.properties"/>
+
+	<!-- 配置 C3P0 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="user" value="${db.user}"></property>
+		<property name="password" value="${db.password}"></property>
+		<property name="driverClass" value="${db.driverClass}"></property>
+		<property name="jdbcUrl" value="${db.jdbcUrl}"></property>
+		<property name="initialPoolSize" value="${db.initPoolSize}"></property>
+		<property name="maxPoolSize" value="${db.maxPoolSize}"></property>
+		<!--最大空闲时间，1800秒内未使用则连接被丢弃。若为0则永不丢弃。默认值: 0 -->   
+		<property name="maxIdleTime" value="${db.maxIdleTime}"/> 
+		<!-- 性能问题 -->
+		<!-- <property name="testConnectionOnCheckin" value="false"></property>
+    	<property name="testConnectionOnCheckout" value="true"></property> -->
+	</bean>
+	
+	<!-- 配置sqlSessionFactory -->
+    <bean id ="sqlSessionFactory"  class ="org.mybatis.spring.SqlSessionFactoryBean" >
+		<property name="dataSource" ref ="dataSource" />
+	    <property name="mapperLocations" value="classpath:conf/mybatis/*.xml"/> 
+	   	<property name="configLocation" value="classpath:conf/SqlMapConfig.xml" />
+    </bean>
+    
+    <!-- 配置sqlsession -->    
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">   
+          <constructor-arg index="0" ref="sqlSessionFactory" />   
+    </bean>
+   
+    <!-- 事务 需要三件事才可以  一具体的事务实现着  二事务管理器  三  aop 事务控制  不起作用-->
+    <!--  这里使用 全注释  事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">    
+        <property name="dataSource" ref="dataSource" />    
+    </bean>
+    
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+    
+    <!-- 通过注解把切面添加到spring容器中-->
+    <context:component-scan base-package="com.ggxytxh.jccy" use-default-filters="false">
+        <context:include-filter type="regex" expression=".*.aspects.*Aspect" />
+    </context:component-scan>
+    <!-- 打开面向切面工具 -->  
+  <aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+</beans>
